@@ -6,11 +6,32 @@
 /*   By: aperin <aperin@student.s19.be>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/14 16:11:42 by aperin            #+#    #+#             */
-/*   Updated: 2022/12/15 08:41:42 by aperin           ###   ########.fr       */
+/*   Updated: 2022/12/15 14:00:56 by aperin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "micro_paint.h"
+#include <stdio.h>
+#include <unistd.h>
+#include <stdlib.h>
+#include <math.h>
+
+typedef struct s_drawing
+{
+	int width;
+	int height;
+	char c;
+	char **draw;
+}t_drawing;
+
+typedef struct s_rect
+{
+	char type;
+	float X;
+	float Y;
+	float width;
+	float height;
+	char c;
+}t_rect;
 
 int ft_write(char *str)
 {
@@ -75,6 +96,55 @@ void print_draw(t_drawing *drawing)
 	}
 }
 
+int in_rectangle(float i, float j, t_rect *r)
+{
+	if (i >= r->Y && i <= r->Y + r->height && j >= r->X && j <= r->X + r->width)
+		return (1);
+	return (0);
+}
+
+int in_border(float i, float j,t_rect *r)
+{
+	if (i - r->Y < 1 || r->Y + r->height - i < 1 || j - r->X < 1 || r->X + r->width - j < 1)
+		return (1);
+	return (0);
+}
+
+void add_r(t_drawing *drawing, t_rect *r)
+{
+	float i = 0, j = 0;
+	while (i < drawing->height)
+	{
+		j = 0;
+		while (j < drawing->width)
+		{
+			if (in_rectangle(i, j, r) && in_border(i, j, r))
+				drawing->draw[(int) i][(int) j] = r->c;
+			if (r->type == 'R' && in_rectangle(i, j, r))
+				drawing->draw[(int) i][(int) j] = r->c;
+			j++;
+		}
+		i++;
+	}
+}
+
+int get_rectangles(FILE *file, t_drawing *drawing)
+{
+	t_rect r;
+	int ret = fscanf(file, "%c %f %f %f %f %c\n", &r.type, &r.X, &r.Y, &r.width, &r.height, &r.c);
+	while (ret == 6)
+	{
+		if ((r.type != 'r' && r.type != 'R') || r.width <= 0 || r.height <= 0)
+			return (0);
+		add_r(drawing, &r);
+		ret = fscanf(file, "%c %f %f %f %f %c\n", &r.type, &r.X, &r.Y, &r.width, &r.height, &r.c);
+	}
+	if (ret == -1)
+		return (1);
+	else
+		return (0);
+}
+
 int main(int ac, char **av)
 {
 	FILE *file;
@@ -86,6 +156,8 @@ int main(int ac, char **av)
 	if (!file)
 		return (ft_write("Error: Operation file corrupted\n"));
 	if (!get_first_line(file, &drawing))
+		return (ft_write("Error: Operation file corrupted\n"));
+	if (!get_rectangles(file, &drawing))
 		return (ft_write("Error: Operation file corrupted\n"));
 	fclose(file);
 	print_draw(&drawing);
