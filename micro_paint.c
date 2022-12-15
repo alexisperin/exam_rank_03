@@ -6,22 +6,11 @@
 /*   By: aperin <aperin@student.s19.be>             +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/12/14 16:11:42 by aperin            #+#    #+#             */
-/*   Updated: 2022/12/14 19:32:43 by aperin           ###   ########.fr       */
+/*   Updated: 2022/12/15 08:41:42 by aperin           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <stdio.h>
-#include <unistd.h>
-#include <stdlib.h>
-#include <math.h>
-
-typedef struct s_drawing
-{
-	int width;
-	int height;
-	char c;
-	char **draw;
-}t_drawing;
+#include "micro_paint.h"
 
 int ft_write(char *str)
 {
@@ -44,7 +33,7 @@ int get_first_line(FILE *file, t_drawing *drawing)
 	int i = 0;
 	while (i < drawing->height)
 	{
-		drawing->draw[i] = malloc((drawing->width + 2) * sizeof(char));
+		drawing->draw[i] = malloc((drawing->width + 1) * sizeof(char));
 		if (!drawing->draw[i])
 		{
 			i--;
@@ -68,8 +57,7 @@ int get_first_line(FILE *file, t_drawing *drawing)
 			drawing->draw[i][j] = drawing->c;
 			j++;
 		}
-		drawing->draw[i][j] = '\n';
-		drawing->draw[i][j + 1] = 0;
+		drawing->draw[i][j] = 0;
 		i++;
 	}
 	return (1);
@@ -82,6 +70,7 @@ void print_draw(t_drawing *drawing)
 	while (i < drawing->height)
 	{
 		ft_write(drawing->draw[i]);
+		write(1, "\n", 1);
 		i++;
 	}
 }
